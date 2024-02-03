@@ -27,14 +27,19 @@ class FriendsPage extends StatefulWidget {
 }
 
 class _FriendsPageState extends State<FriendsPage> {
+
   Future<User> getUser(String eachUserId) async {
     final String url =
         "https://postifybackend.onrender.com/personalInfo/getUserById/" + eachUserId;
+
     final response = await http.get(Uri.parse(url));
     var responseData = json.decode(response.body);
+
     Contact contact = new Contact(
         PhNo: responseData['contact']['PhNo'].toString(),
-        Email: responseData['contact']['Email']);
+        Email: responseData['contact']['Email']
+    );
+
     List<String> friends = [];
     List<String> followers = [];
     List<String> following = [];
@@ -42,22 +47,34 @@ class _FriendsPageState extends State<FriendsPage> {
     List<String> friendRequestRecieved = [];
 
     if (responseData['friends'].length != 0) {
-      for (var eachFriend in responseData['friends'])
+      for (var eachFriend in responseData['friends']) {
         friends.add(eachFriend.toString());
+      }
     }
-    if (responseData['followers'].length != 0)
-      for (var eachFollower in responseData['followers'])
+
+    if (responseData['followers'].length != 0) {
+      for (var eachFollower in responseData['followers']) {
         followers.add(eachFollower.toString());
-    if (responseData['following'].length != 0)
-      for (var eachFollowing in responseData['following'])
+      }
+    }
+
+    if (responseData['following'].length != 0){
+      for (var eachFollowing in responseData['following']) {
         following.add(eachFollowing.toString());
-    if (responseData['friendRequestSent'].length != 0)
-      for (var eachFriendRequestSent in responseData['freindRequestSent'])
+      }
+    }
+
+    if (responseData['friendRequestSent'].length != 0) {
+      for (var eachFriendRequestSent in responseData['friendRequestSent']) {
         friendRequestSent.add(eachFriendRequestSent.toString());
-    if (responseData['friendRequestRecieved'].length != 0)
-      for (var eachFriendRequestRecieved
-          in responseData['freindRequestRecieved'])
+      }
+    }
+
+    if (responseData['friendRequestRecieved'].length != 0) {
+      for (var eachFriendRequestRecieved in responseData['friendRequestRecieved']) {
         friendRequestRecieved.add(eachFriendRequestRecieved.toString());
+      }
+    }
 
     User user = new User(
         userId: responseData['_id'],
@@ -71,13 +88,18 @@ class _FriendsPageState extends State<FriendsPage> {
         followers: followers,
         following: following,
         friendRequestSent: friendRequestSent,
-        friendRequestRecieved: friendRequestRecieved);
+        friendRequestRecieved: friendRequestRecieved
+    );
+
+
+
     return user;
   }
 
   Future<List<Future<User>>> getFriend() async {
     final String url =
         "https://postifybackend.onrender.com/personalInfo/getUserById/" + widget.userId;
+
     final response = await http.get(Uri.parse(url));
     var responseData = json.decode(response.body);
     List<Future<User>> listUser = [];
@@ -106,12 +128,14 @@ class _FriendsPageState extends State<FriendsPage> {
             future: getFriend(),
             builder: (context, snapshot) {
               var usersList = snapshot.data;
+
               if (usersList != null) {
                 return FutureBuilder(
                     future: fetchUsers(usersList),
                     builder: (context, userSnapshot) {
                       var users = userSnapshot.data;
                       if (users != null) {
+
                         return ListView.builder(
                           padding: EdgeInsetsDirectional.only(top: 20.0),
                           itemCount: users.length,
