@@ -1,4 +1,6 @@
-A flutter based web applciation which allows users to connect, create posts, and send friend requests, and chat with friends.
+# Postify
+A flutter based web applciation which allows users to connect, create posts, and send friend requests, and chat with friends. To use the web app go to this link:
+https://postify-16l.pages.dev/
 
 – Implemented the frontend using **Flutter**, creating interactive user interfaces with widgets and handling user input.
 
@@ -7,14 +9,25 @@ database.
 
 – Tech Stacks: Flutter, Dart, Node.js, MongoDB
 
-As this web app is not deployed, you have to follow certain steps to run it:
+## Branches
 
-Step 1:) Go inside the backend folder . Right click and choose the option open with code. Then run app.js file. You should make sure that this javascript is running. (Use play button in VS Code). This will serve as Backend Server.
+- **master**: Contains only the README file with guidance.
+- **backend**: Hosts the backend code and configurations.
+- **frontend**: Holds the frontend codebase.
+- **build**: Specifically for the built and deployable version of the frontend.
 
-Step 2:) Go Inside Frontend\project_hercules\build\web and Right click and choose open in terminal. 
+## Backend
 
-Step 3:) Inside the terminal write the command:  python -m http.server
+The backend of Postify is hosted on the `backend` branch. The Backend is built using Node.js , Express.js. The databse used is MongoDB.  It is deployed using Render.
 
-Step 4:) Open Google Chrome and go to http://localhost:8000 and you will see the website
+## Frontend
 
-Thanks for looking into my project! Have a nice day!
+The frontend code can be found on the `frontend` branch. This branch contains all the flutter code other than build folder.
+
+## Deployment
+
+- **Backend**: Hosted from the `backend` branch. Deployed using Render
+
+- **Frontend**: Deployed from the `build` branch. Deployed using clouflare. To visit go here: https://postify-16l.pages.dev/
+
+Feel free to explore each branch for specific code and documentation related to that part of the project.
