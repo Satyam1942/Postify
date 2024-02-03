@@ -22,7 +22,7 @@ The backend of Postify is hosted on the `backend` branch. The Backend is built u
 
 ## Frontend
 
-The frontend code can be found on the `frontend` branch. This branch contains all the flutter code other than build folder.
+The frontend code can be found on the `frontend` branch. Frontend is built completely using Flutter. This branch contains all the flutter code other than build folder.
 
 ## Deployment
 
