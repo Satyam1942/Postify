@@ -1,4 +1,0 @@
-#Sun Jul 02 14:52:25 IST 2023
-base.0=E\:\\Flutter Projects\\project_hercules\\build\\app\\intermediates\\dex\\debug\\mergeDexDebug\\classes.dex
-renamed.0=classes.dex
-path.0=classes.dex
