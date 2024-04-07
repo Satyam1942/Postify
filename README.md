@@ -31,4 +31,9 @@ The frontend code can be found on the `frontend` branch. Frontend is built compl
 
 - **Frontend**: Deployed from the `build` branch. Deployed using clouflare. To visit go here: https://postify-16l.pages.dev/
 
+## High Level Architecture:
+  The architecture of Postify is really simple.  Client sends HTTP Requests to the backend server. Backend is responsible for authenticating the user, performing CRUD updates on the database and sending HTTP   responses back to the client in JSON format. The Request and Response  sent/received are handled by flutter framework and the JSON is displayed in beautified fashion in UI.
+  
+  ![Screenshot 2024-04-07 183644](https://github.com/Satyam1942/Postify/assets/126737709/6645f5cc-f9df-4614-95c4-85c463b76831)
+
 Feel free to explore each branch for specific code and documentation related to that part of the project.
