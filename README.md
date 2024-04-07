@@ -1,6 +1,7 @@
 # Postify
-A flutter based web applciation which allows users to connect, create posts, and send friend requests, and chat with friends. To use the web app go to this link:
+A flutter based web application which allows users to connect, create posts, and send friend requests, and chat with friends. To use the web app go to this link:
 https://postify-16l.pages.dev/ (Open it in Desktop Only. I will  make this responsive for mobile soon..)
+To know more about the design and improvements that can be made refer to the design doc: https://docs.google.com/document/d/1VVitMtY_d1hZxBDaYAMw1jJNY4rVtklJ4gVQntFo3Ok/edit?usp=sharing
 
 – Implemented the frontend using **Flutter**, creating interactive user interfaces with widgets and handling user input.
 
