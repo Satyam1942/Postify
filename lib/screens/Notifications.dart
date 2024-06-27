@@ -132,133 +132,136 @@ class NotificationScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text('Notifications'),
         ),
-        body:Column(
-          children:[
+        body: SingleChildScrollView(
+          child: Column(
+            children:[
+              Container(
+                height: 460,
+          
+            child: FutureBuilder(
+                future: searchMessage(),
+                builder: (context, snapshot) {
+                  if (snapshot.data != null) {
+                    HashMap<Message, User>? messageMap = snapshot.data;
+                    final messageList = messageMap!.entries.toList();
+                    return ListView.builder(
+                      itemCount: (messageMap!.length>0)?messageMap.length:0, // Replace with your actual number of notifications
+                      itemBuilder: (context, index) {
+                        return Column(children: [
+                          Card(
+                              color: Colors.white,
+                              child: ListTile(
+                                tileColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(80),
+                                ),
+                                contentPadding: const EdgeInsets.only(
+                                    left: -30, right: 20, top: 20, bottom: 20),
+                                leading: Container(
+                                  width: 5.0,
+                                  height: 50.0,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                ),
+                                title: Text(
+                                    'You have new message from ${messageList[index].value.username}:\n\n "${messageList[index].key.messageBody}" \n'),
+                                subtitle: Text('${messageList[index].key.time}'),
+                                trailing: Text('${messageList[index].key.date}'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ChatScreen(
+                                              userId: userId,
+                                              userName: username,
+                                              friendName: messageList[index]
+                                                  .value
+                                                  .username,
+                                              friendId:
+                                                  messageList[index].value.userId,
+                                              friendDP:
+                                                  messageList[index].value.DP,
+                                            )),
+                                  );
+                                },
+                              )),
+                        ]);
+                      },
+                    );
+                  } else {
+                    print("1");
+                    return Container(
+                      margin: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                })
+              ),
+            SizedBox(height: 20,),
             Container(
-              height: 460,
-
-          child: FutureBuilder(
-              future: searchMessage(),
-              builder: (context, snapshot) {
-                if (snapshot.data != null) {
-                  HashMap<Message, User>? messageMap = snapshot.data;
-                  final messageList = messageMap!.entries.toList();
-                  return ListView.builder(
-                    itemCount: (messageMap!.length>0)?messageMap.length:0, // Replace with your actual number of notifications
-                    itemBuilder: (context, index) {
-                      return Column(children: [
-                        Card(
-                            color: Colors.white,
-                            child: ListTile(
-                              tileColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(80),
-                              ),
-                              contentPadding: const EdgeInsets.only(
-                                  left: -30, right: 20, top: 20, bottom: 20),
-                              leading: Container(
-                                width: 5.0,
-                                height: 50.0,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(30.0),
+                height: 200,
+             child: FutureBuilder(
+                future: getUser(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    var user = snapshot!.data;
+                    return ListView.builder(
+                      itemCount: user?.friendRequestRecieved
+                          .length, // Replace with your actual number of notifications
+                      itemBuilder: (context, index) {
+                        return Column(children: [
+                          Card(
+                              color: Colors.white,
+                              child: ListTile(
+                                tileColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(80),
                                 ),
-                              ),
-                              title: Text(
-                                  'You have new message from ${messageList[index].value.username}:\n\n "${messageList[index].key.messageBody}" \n'),
-                              subtitle: Text('${messageList[index].key.time}'),
-                              trailing: Text('${messageList[index].key.date}'),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ChatScreen(
-                                            userId: userId,
-                                            userName: username,
-                                            friendName: messageList[index]
-                                                .value
-                                                .username,
-                                            friendId:
-                                                messageList[index].value.userId,
-                                            friendDP:
-                                                messageList[index].value.DP,
-                                          )),
-                                );
-                              },
-                            )),
-                      ]);
-                    },
-                  );
-                } else {
-                  print("1");
-                  return Container(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-              })
-            ),
-          SizedBox(height: 20,),
-          Container(
-              height: 200,
-           child: FutureBuilder(
-              future: getUser(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  var user = snapshot!.data;
-                  return ListView.builder(
-                    itemCount: user?.friendRequestRecieved
-                        .length, // Replace with your actual number of notifications
-                    itemBuilder: (context, index) {
-                      return Column(children: [
-                        Card(
-                            color: Colors.white,
-                            child: ListTile(
-                              tileColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(80),
-                              ),
-                              contentPadding: const EdgeInsets.only(
-                                  left: -30, right: 20, top: 20, bottom: 20),
-                              leading: Container(
-                                width: 5.0,
-                                height: 50.0,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(30.0),
+                                contentPadding: const EdgeInsets.only(
+                                    left: -30, right: 20, top: 20, bottom: 20),
+                                leading: Container(
+                                  width: 5.0,
+                                  height: 50.0,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
                                 ),
-                              ),
-                              title: Text(
-                                  'You have recieved Friend Request from ${user?.friendRequestRecieved[index]}'),
-                              onTap: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ProfileScreen(
-                                          userId: user!
-                                              .friendRequestRecieved[index],
-                                          userIdHead: userId,
-                                          following: user.following,
-                                          friendRequestSent:
-                                              user.friendRequestSent,
-                                          friends: user.friends,
-                                          friendRequestRecieved:
-                                              user.friendRequestRecieved)),
-                                );
-                              },
-                            )),
-                      ]);
-                    },
-                  );
-                } else {
-                  print("2");
-                  return Container(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-              }),)
-        ])
+                                title: Text(
+                                    'You have recieved Friend Request from ${user?.friendRequestRecieved[index]}'),
+                                onTap: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ProfileScreen(
+                                            userIdFriend: user!
+                                                .friendRequestRecieved[index],
+                                            userIdHead: userId,
+                                            following: user.following,
+                                            friendRequestSent:
+                                                user.friendRequestSent,
+                                            friends: user.friends,
+                                            friendRequestRecieved:
+                                                user.friendRequestRecieved)),
+                                  );
+                                },
+                              )),
+                        ]);
+                      },
+                    );
+                  } else {
+                    print("2");
+                    return Container(
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                }),)
+          ]),
+        )
         );
   }
 }

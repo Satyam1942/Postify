@@ -107,10 +107,10 @@ class _MyPostScreenState extends State<MyPostScreen> {
         appBar: AppBar(
           title: Text("My Posts"),
         ),
-        body: SingleChildScrollView(
+        body:SingleChildScrollView(
             child: Container(
                 color: Color.fromARGB(83, 162, 207, 245),
-                child: Column(children: [
+                child:   Column(children: [
                   SizedBox(
                     height: 20,
                   ),
@@ -127,6 +127,7 @@ class _MyPostScreenState extends State<MyPostScreen> {
                       builder: (context, snapshot) {
                         if (snapshot.data == null) {
                           return Container(
+                            margin: EdgeInsets.symmetric( vertical: 10),
                             child: Center(
                               child: CircularProgressIndicator(),
                             ),
@@ -166,8 +167,8 @@ class _MyPostScreenState extends State<MyPostScreen> {
                                                         )));
                                           },
                                           child: Card(
-                                            color: Colors.white,
-                                            child: ListTile(
+                                          color: Colors.white,
+                                          child: ListTile(
                                                 tileColor: Colors.white,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
@@ -211,11 +212,13 @@ class _MyPostScreenState extends State<MyPostScreen> {
                                                                       postId: post
                                                                           .postId)))),
                                                         },
-                                                    child: Icon(Icons.edit))),
-                                          ));
+                                                    child: Icon(Icons.edit)))),
+                                          );
                                     } else {
                                       return Container(
+                                        margin: EdgeInsets.symmetric(vertical: 10),
                                         child: Center(
+
                                           child: CircularProgressIndicator(),
                                         ),
                                       );

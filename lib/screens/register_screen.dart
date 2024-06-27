@@ -60,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return User.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 409) {
       throw Exception(
-          'User Already Exists. Status Code: ${response.statusCode}');
+          'Username Already Exists. Status Code: ${response.statusCode}');
     } else {
       throw Exception('Login failed. Status Code: ${response.statusCode}');
     }
@@ -68,12 +68,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<User>? _futureUser;
   String imageURL="";
+  bool isUploadingImage = false;
+
   @override
   Widget build(BuildContext context) {
+    var screenSizeHorizontal = MediaQuery.sizeOf(context).width;
+    var screenSizeVertical = MediaQuery.sizeOf(context).height;
     return Scaffold(
       body: (_futureUser == null)
-          ? Container(
-              padding: EdgeInsets.symmetric(horizontal: 500),
+          ?ListView(
+          children:<Widget>[
+        Container(
+              padding: EdgeInsets.symmetric(horizontal: screenSizeHorizontal/10,vertical: screenSizeVertical/10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -130,38 +136,80 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   SizedBox(height: 10,),
                   ElevatedButton(onPressed: ()=>{_uploadImage()}, child: Text("Upload Image")),
                   SizedBox(height: 10.0),
+                  (isUploadingImage)?CircularProgressIndicator():
                   ElevatedButton(
-                    onPressed: () {
-                      String name = _nameController.text;
-                      int age = int.parse(_ageController.text);
-                      String gender = _genderController.text;
-                      String username = _usernameController.text;
-                      String password = _passwordController.text;
-                      String Email = _emailController.text;
-                      String DP = imageURL;
-                      List<String> friends = [];
-                      List<String> followers = [];
-                      List<String> following = [];
-                      List<String> friendRequestSent = [];
-                      List<String> friendRequestRecieved = [];
-                      int phNo = 123;
-                      setState(() {
-                        _futureUser = registerUser(
-                            name,
-                            age,
-                            gender,
-                            username,
-                            password,
-                            Email,
-                            DP,
-                            friends,
-                            followers,
-                            following,
-                            phNo,
-                            friendRequestRecieved,
-                            friendRequestSent);
-                      });
-
+                    onPressed:() {
+                      try {
+                        String name = _nameController.text;
+                        int age = int.parse(_ageController.text);
+                        String gender = _genderController.text;
+                        String username = _usernameController.text;
+                        String password = _passwordController.text;
+                        String Email = _emailController.text;
+                        String DP = imageURL;
+                        List<String> friends = [];
+                        List<String> followers = [];
+                        List<String> following = [];
+                        List<String> friendRequestSent = [];
+                        List<String> friendRequestRecieved = [];
+                        int phNo = 123;
+                        if (name == "" || gender == "" || DP=="" || username == "" ||
+                            password == "" || Email == "") {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Cannot Register!!'),
+                                content: Text('Enter All Details!'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Close'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          setState(() {
+                            _futureUser = registerUser(
+                                name,
+                                age,
+                                gender,
+                                username,
+                                password,
+                                Email,
+                                DP,
+                                friends,
+                                followers,
+                                following,
+                                phNo,
+                                friendRequestRecieved,
+                                friendRequestSent);
+                          });
+                        }
+                      }catch(e){
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Cannot Register!!'),
+                              content: Text('Enter valid age'),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    // Close the dialog
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('Close'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
                       // Perform registration action
                     },
                     child: Text('Register'),
@@ -169,14 +217,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   SizedBox(height: 20.0),
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to the login screen
                       Navigator.pop(context);
                     },
                     child: Text('Already have an account? Log in'),
                   ),
                 ],
               ),
-            )
+            )])
           : FutureBuilder<User>(
               future: _futureUser,
               builder: (context, snapshot) {
@@ -192,9 +239,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         );
                       })));
                 } else if (snapshot.hasError) {
-                  return Text('${snapshot.error}');
+                  return Center(child:Text('${snapshot.error}'));
                 }
-                return const CircularProgressIndicator();
+                return Center(child: const CircularProgressIndicator());
               },
             ),
     );
@@ -204,15 +251,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final picker = ImagePicker();
     XFile? _pickedImage = await picker.pickImage(source: ImageSource.gallery);
     if (_pickedImage != null) {
+      Uint8List fileBytes = await _pickedImage.readAsBytes();
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('https://api.cloudinary.com/v1_1/dhrde70mt/image/upload'),
+      );
+      request.fields['upload_preset'] = 'ml_default';
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename:_pickedImage.name,
+        ),
+      );
+      setState(() {
+        isUploadingImage = true;
+      });
+      var response = await request.send();
+      var responseData = await response.stream.toBytes();
+      var resultData = json.decode(utf8.decode(responseData));
 
-      Uint8List  imageBytes = await _pickedImage.readAsBytes();
-      String base64Image = base64Encode(imageBytes);
-     imageURL =  base64Image;
+      setState(() {
+        imageURL = resultData['secure_url'];
+        isUploadingImage = false;
+      });
 
     } else {
-      // No image selected
       print('No image selected');
-      imageURL="";
     }
   }
 }

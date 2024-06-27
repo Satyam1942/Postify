@@ -1,12 +1,10 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'Post.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String userId; // The userId of the friend
+  final String userIdFriend;
   final String userIdHead;
   final List<String> following;
   final List<String> friendRequestSent;
@@ -14,7 +12,7 @@ class ProfileScreen extends StatefulWidget {
   final List<String> friends;
 
   ProfileScreen(
-      {required this.userId,
+      {required this.userIdFriend,
       required this.userIdHead,
       required this.following,
       required this.friendRequestSent,
@@ -27,10 +25,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Simulated data for the friend's profile
   Future<User> getUser() async {
-    final String url =
-        "https://postifybackend.onrender.com/personalInfo/getUserById/" + widget.userId;
+    final String url = "https://postifybackend.onrender.com/personalInfo/getUserById/" + widget.userIdFriend;
     final response = await http.get(Uri.parse(url));
     var responseData = json.decode(response.body);
 
@@ -82,8 +78,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _friendRequestSent,
       _friendRequestRecieved,
       _acceptFriendRequest;
+
   @override
   Widget build(BuildContext context) {
+    var screenSizeHorizontal = MediaQuery.sizeOf(context).width;
+    var screenSizeVertical = MediaQuery.sizeOf(context).height;
+
     return Scaffold(
         appBar: AppBar(
           title: Text('Profile'),
@@ -93,10 +93,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             builder: (context, snapshot) {
               var user = snapshot.data;
               if (user != null) {
-                return Column(
+                return SingleChildScrollView( child : Column(
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(16),
+                      padding: EdgeInsets.all(screenSizeHorizontal/100),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -106,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child:Stack(
                                     children:[
                                       if(user.DP!="")
-                                        Image.memory(base64Decode(user.DP),
+                                        Image.network(user.DP,
                                           width: double.infinity,
                                           height: double.infinity,
                                           fit: BoxFit.cover,),
@@ -143,14 +143,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ElevatedButton(
                           onPressed: () {
                             if ((!user.friends.contains(widget.userIdHead)) &&
-                                (!user.friendRequestSent
-                                    .contains(widget.userIdHead))) {
+                                (!user.friendRequestSent.contains(widget.userIdHead))) {
+
                               setState(() {
-                                _friendRequestSent = updateFriendRequestSent(
-                                    widget.friendRequestSent);
-                                _friendRequestRecieved =
-                                    updateFriendRequestRecieved(
-                                        user.friendRequestRecieved);
+                                _friendRequestSent = updateFriendRequestSent(widget.friendRequestSent);
+                                _friendRequestRecieved = updateFriendRequestRecieved(user.friendRequestRecieved);
+
                                 WidgetsBinding.instance.addPostFrameCallback((_) =>
                                     Navigator.pushReplacement(
                                         context,
@@ -158,16 +156,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             builder: (BuildContext context) =>
                                             super.widget)));
                               });
-                            } else if (!user.friends
-                                    .contains(widget.userIdHead) &&
-                                user.friendRequestSent
-                                    .contains(widget.userIdHead))
+
+                            } else if (!user.friends.contains(widget.userIdHead) && user.friendRequestSent.contains(widget.userIdHead))
+
                               setState(() {
                                 _acceptFriendRequest = updateFriends(
                                     widget.friends,
                                     user.friends,
                                     user.friendRequestSent,
                                     widget.friendRequestRecieved);
+
                                 WidgetsBinding.instance.addPostFrameCallback((_) =>
                                     Navigator.pushReplacement(
                                         context,
@@ -213,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           'Following: ' + user.following.length.toString()),
                     ),
                   ],
-                );
+                ));
               } else {
                 return Container(
                     child: Center(
@@ -236,9 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return Text("Already a friend!");
         } else if (!user.friends.contains(widget.userIdHead) &&
             user.friendRequestSent.contains(widget.userIdHead)) {
-          print("YES");
-          return Text(
-              "Accept Friend Request"); // Return an empty container or null if none of the conditions are met
+          return Text("Accept Friend Request");
         } else
           return Container();
       },
@@ -246,10 +242,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<User> updateFollowing(List<String> followingUser) async {
-    followingUser.add(widget.userId);
+    followingUser.add(widget.userIdFriend);
     final http.Response response = await http.patch(
-      Uri.parse("https://postifybackend.onrender.com/personalInfo/updateUserById/" +
-          widget.userIdHead),
+      Uri.parse("https://postifybackend.onrender.com/personalInfo/updateUserById/" + widget.userIdHead),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -265,13 +260,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<User> updateFollower(List<String> followerFriend) async {
     followerFriend.add(widget.userIdHead);
     final http.Response response = await http.patch(
-      Uri.parse("https://postifybackend.onrender.com/personalInfo/updateUserById/" +
-          widget.userId),
+      Uri.parse("https://postifybackend.onrender.com/personalInfo/updateUserById/" + widget.userIdFriend),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<dynamic, dynamic>{'followers': followerFriend}),
     );
+
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
     } else {
@@ -280,7 +275,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<User> updateFriendRequestSent(List<String> friendRequestSent) async {
-    friendRequestSent.add(widget.userId);
+    friendRequestSent.add(widget.userIdFriend);
     final http.Response response = await http.patch(
       Uri.parse("https://postifybackend.onrender.com/personalInfo/updateUserById/" +
           widget.userIdHead),
@@ -302,7 +297,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     friendRequestRecieved.add(widget.userIdHead);
     final http.Response response = await http.patch(
       Uri.parse("https://postifybackend.onrender.com/personalInfo/updateUserById/" +
-          widget.userId),
+          widget.userIdFriend),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -321,14 +316,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       List<String> friendUser,
       List<String> friendRequestSentUser,
       List<String> friendRequestRecievedUserHead) async {
+
     friendUser.add(widget.userIdHead);
-    friendUserHead.add(widget.userId);
+    friendUserHead.add(widget.userIdFriend);
     friendRequestSentUser.remove(widget.userIdHead);
-    friendRequestRecievedUserHead.remove(widget.userId);
+    friendRequestRecievedUserHead.remove(widget.userIdFriend);
 
     final http.Response response = await http.patch(
       Uri.parse("https://postifybackend.onrender.com/personalInfo/updateUserById/" +
-          widget.userId),
+          widget.userIdFriend),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -349,10 +345,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'friendRequestRecieved': friendRequestRecievedUserHead
       }),
     );
+
     if (response.statusCode == 200 && response2.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Connection failed. Status Code: ${response.statusCode}');
     }
   }
+
 }

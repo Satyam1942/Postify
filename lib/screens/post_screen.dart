@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:html';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:project_hercules/screens/Post.dart';
 import 'package:project_hercules/screens/searchScreen.dart';
-import 'package:transparent_image/transparent_image.dart';
+
 
 class PostScreen extends StatefulWidget {
   final String postId;
@@ -28,17 +26,19 @@ class PostScreen extends StatefulWidget {
 
 class _PostScreenState extends State<PostScreen> {
   TextEditingController _commentController = TextEditingController();
+  Future<Post>? _futureComment;
 
   Future<Post> getRequest() async {
-    final String url =
-        "https://postifybackend.onrender.com/postInfo/getPostById/" + widget.postId;
+    final String url = "https://postifybackend.onrender.com/postInfo/getPostById/" + widget.postId;
     final response = await http.get(Uri.parse(url));
     var responseData = json.decode(response.body);
-
     List<Comments> commentsList = [];
+
     for (var eachComment in responseData["comments"]) {
       Comments comments = new Comments(
-          body: eachComment["body"], author: eachComment["username"]);
+          body: eachComment["body"],
+          author: eachComment["username"]
+      );
       commentsList.add(comments);
     }
 
@@ -55,10 +55,11 @@ class _PostScreenState extends State<PostScreen> {
     return post;
   }
 
-  Future<Post> updateComment(String username, String commentBody, String postId,
-      List<Comments> commentList) async {
+  Future<Post> updateComment(String username, String commentBody, String postId, List<Comments> commentList) async {
+
     Comments comments = new Comments(body: commentBody, author: username);
     commentList.add(comments);
+
     final http.Response response = await http.patch(
       Uri.parse("https://postifybackend.onrender.com/postInfo/updatePostById/" + postId),
       headers: <String, String>{
@@ -66,6 +67,7 @@ class _PostScreenState extends State<PostScreen> {
       },
       body: jsonEncode(<dynamic, dynamic>{'comments': commentList}),
     );
+
     if (response.statusCode == 200) {
       return Post.fromJson(jsonDecode(response.body));
     } else {
@@ -73,7 +75,7 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
-  Future<Post>? _futureComment;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,6 +93,7 @@ class _PostScreenState extends State<PostScreen> {
 
                   if (post == null) {
                     return Container(
+                      margin: EdgeInsets.symmetric(vertical: 20),
                       child: Center(
                         child: CircularProgressIndicator(),
                       ),
@@ -111,10 +114,8 @@ class _PostScreenState extends State<PostScreen> {
                                             userId: widget.userId,
                                             following: widget.following,
                                             friends: widget.friends,
-                                            friendRequestSent:
-                                                widget.friendRequestSent,
-                                            friendRequestRecieved:
-                                                widget.friendRequestRecieved,
+                                            friendRequestSent: widget.friendRequestSent,
+                                            friendRequestRecieved: widget.friendRequestRecieved,
                                           )));
                             },
                             child: Text("Post By: " + post.author,
@@ -139,7 +140,7 @@ class _PostScreenState extends State<PostScreen> {
                           SizedBox(height: 20.0),
                           (post.imageUrl == "")
                               ? SizedBox(height: 20)
-                              : Image.memory(base64Decode(post.imageUrl)),
+                              : Image.network(post.imageUrl),
                           SizedBox(height: 20.0),
                           Row(
                             children: [
@@ -188,7 +189,7 @@ class _PostScreenState extends State<PostScreen> {
                             onPressed: () {
                               String comment = _commentController.text;
                               List<Comments> commentsList = post.comments;
-                              // Add your logic to save the comment to the database or perform any necessary operations
+
                               setState(() {
                                 _futureComment = updateComment(widget.username,
                                     comment, post.postId, commentsList);
@@ -200,7 +201,7 @@ class _PostScreenState extends State<PostScreen> {
                                                 super.widget)));
                               });
                               _commentController
-                                  .clear(); // Clear the text field after submitting the comment
+                                  .clear();
                             },
                             child: Text('Submit'),
                           ),

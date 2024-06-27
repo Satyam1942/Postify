@@ -21,13 +21,14 @@ class _ProfilePageState extends State<ProfilePage> {
   String email = 'johndoe@example.com';
   int age = 25;
   String gender = 'Male';
+  String DP="";
 
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController ageController = TextEditingController();
   TextEditingController genderController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-    String DP="";
+
   Future<User> getUser() async {
     final String url =
         "https://postifybackend.onrender.com/personalInfo/getUserById/" + widget.userId;
@@ -96,7 +97,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Login failed. Status Code: ${response.statusCode}');
+      throw Exception('Failed to Update Details. Status Code: ${response.statusCode}');
     }
   }
 
@@ -138,6 +139,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<User>? _futureUser;
   Future<User>? _deleteFutureUser;
   Future<User>? _futurePassword;
+
   @override
   void initState() {
     super.initState();
@@ -199,7 +201,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: Text('Profile'),
       ),
-      body: Padding(
+      body: SingleChildScrollView( child: Padding(
         padding: EdgeInsets.all(16.0),
         child: FutureBuilder(
             future: getUser(),
@@ -269,15 +271,34 @@ class _ProfilePageState extends State<ProfilePage> {
               }
             }),
       ),
-    );
+    ));
   }
   void _uploadImage() async {
     final picker = ImagePicker();
     XFile? _pickedImage = await picker.pickImage(source: ImageSource.gallery);
     if (_pickedImage != null) {
-      Uint8List imageBytes = await _pickedImage.readAsBytes();
-      String base64Image = base64Encode(imageBytes);
-      DP = base64Image;
+      Uint8List fileBytes = await _pickedImage.readAsBytes();
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('https://api.cloudinary.com/v1_1/dhrde70mt/image/upload'),
+      );
+      request.fields['upload_preset'] = 'ml_default';
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename:_pickedImage.name,
+        ),
+      );
+
+      var response = await request.send();
+      var responseData = await response.stream.toBytes();
+      var resultData = json.decode(utf8.decode(responseData));
+
+      setState(() {
+        DP = resultData['secure_url'];
+        print(DP);
+      });
     } else {
       // No image selected
       print('No image selected');

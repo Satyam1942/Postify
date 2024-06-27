@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:project_hercules/screens/MakePost_screen.dart';
-import 'package:project_hercules/screens/Notifications.dart';
 import 'package:project_hercules/screens/Post.dart';
 import 'package:project_hercules/screens/friend_screen.dart';
 import 'package:project_hercules/screens/login_screen.dart';
@@ -13,7 +12,7 @@ import 'package:project_hercules/screens/searchScreen.dart';
 import 'package:project_hercules/screens/user_profile_screen.dart';
 import 'package:project_hercules/utils/app_styles.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:transparent_image/transparent_image.dart';
+import 'package:sizer/sizer.dart';
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -29,6 +28,16 @@ class _HomePageState extends State<HomePage> {
   TextEditingController _searchController = TextEditingController();
   stt.SpeechToText _speechToText = stt.SpeechToText();
   bool _isListening = false;
+
+  late Future<User> futureUser;
+  late Future<List<Post>> futurePost;
+
+  @override
+  void initState() {
+    super.initState();
+      futureUser = getUser();
+      futurePost = getAllPosts();
+  }
 
   void _initializeSpeechRecognition() async {
     bool available = await _speechToText.initialize();
@@ -71,7 +80,9 @@ class _HomePageState extends State<HomePage> {
 
     Contact contact = new Contact(
         PhNo: responseData['contact']['PhNo'].toString(),
-        Email: responseData['contact']['Email']);
+        Email: responseData['contact']['Email']
+    );
+
     List<String> friends = [];
     List<String> followers = [];
     List<String> following = [];
@@ -106,11 +117,12 @@ class _HomePageState extends State<HomePage> {
         followers: followers,
         following: following,
         friendRequestRecieved: friendRequestRecieved,
-        friendRequestSent: friendRequestSent);
+        friendRequestSent: friendRequestSent
+    );
     return user;
   }
 
-  Future<List<Post>> getRequest() async {
+  Future<List<Post>> getAllPosts() async {
     final String url = "https://postifybackend.onrender.com/postInfo/getAllPosts";
     final response = await http.get(Uri.parse(url));
     var responseData = json.decode(response.body);
@@ -139,7 +151,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var screenSize =MediaQuery.of(context).size.width;
+    var screenSizeHorizontal = MediaQuery.of(context).size.width;
+    var screenSizeVertical = MediaQuery.of(context).size.height;
+
     return Scaffold(
         appBar: AppBar(
             title: Row(
@@ -155,27 +169,11 @@ class _HomePageState extends State<HomePage> {
                 },
                 style: TextButton.styleFrom(
                     foregroundColor: Colors.black,
-                    minimumSize: Size(100.0, 60.0)),
+                    minimumSize: Size(screenSizeHorizontal/100, screenSizeVertical/10)),
                 child: Text('Home')),
             SizedBox(
               width: 10,
             ),
-            TextButton(
-                onPressed: () {
-                  WidgetsBinding.instance.addPostFrameCallback((_) =>
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                                  NotificationScreen(
-                                    userId: widget.userId,
-                                    username: widget.username,
-                                  ))));
-                },
-                style: TextButton.styleFrom(
-                    foregroundColor: Colors.pink,
-                    minimumSize: Size(100.0, 60.0)),
-                child: Text('Notifications'))
           ],
         )),
         body: ListView(
@@ -183,22 +181,26 @@ class _HomePageState extends State<HomePage> {
             Container(
               color: Color.fromARGB(83, 162, 207, 245),
               padding: EdgeInsetsDirectional.symmetric(
-                  horizontal: 200.0, vertical: 50.0),
+                  horizontal: 5.w, vertical:  10.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
                     children: [
                       FutureBuilder(
-                          future: getUser(),
-                          builder: (context, snapshot) {
+                          future: futureUser,
+                          builder: ((context, snapshot) {
                             var user = snapshot.data;
-                            if (user != null) {
+                            if(snapshot.connectionState == ConnectionState.waiting)
+                              return Center(
+                                  child: CircularProgressIndicator()
+                              );
+                            else if(snapshot.hasError)
+                              return Text("Error: ${snapshot.error}");
+                            else  if (user != null) {
                               return Container(
-
-                                  width: screenSize/2,
-                                  height: screenSize/8,
-                                  alignment: Alignment.topCenter,
                                   child: Card(
                                       surfaceTintColor: Colors.white,
                                       elevation: 10,
@@ -207,7 +209,7 @@ class _HomePageState extends State<HomePage> {
                                               BorderRadius.circular(10)),
                                       child: Row(children: [
                                         SizedBox(
-                                          width: screenSize/100,
+                                          width: screenSizeHorizontal/100,
                                         ),
                                         FloatingActionButton(
                                             onPressed: () {
@@ -227,14 +229,14 @@ class _HomePageState extends State<HomePage> {
                                               });
                                             },
                                             child: Icon(CupertinoIcons.plus)),
-                                        SizedBox(width: screenSize/100),
+                                        SizedBox(width: screenSizeHorizontal/100),
                                         CircleAvatar(
-                                          radius: 50.0,
+                                          radius: 50,
                                           child:ClipOval(
                                               child:Stack(
                                             children:[
                                               if(user.DP!="")
-                                            Image.memory(base64Decode(user.DP),
+                                            Image.network(user.DP,
                                               width: double.infinity,
                                               height: double.infinity,
                                               fit: BoxFit.cover,),
@@ -242,13 +244,12 @@ class _HomePageState extends State<HomePage> {
                                         ]))
                                         ),
                                         SizedBox(
-                                          width: screenSize/50,
+                                          width: screenSizeHorizontal/50,
                                         ),
                                         Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            SizedBox(height: screenSize/100),
+                                            SizedBox(height: screenSizeVertical/100),
                                             Text(
                                               user.username,
                                               style: TextStyle(
@@ -256,17 +257,17 @@ class _HomePageState extends State<HomePage> {
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            SizedBox(height: screenSize/200),
+                                            SizedBox(height: screenSizeVertical/200),
                                             Text(
                                               user.contact.Email,
                                               style: TextStyle(fontSize: 16.0),
                                             ),
-                                            SizedBox(height: screenSize/200),
+                                            SizedBox(height: screenSizeVertical/200),
                                             Text(
                                               user.name,
                                               style: TextStyle(fontSize: 16.0),
                                             ),
-                                            SizedBox(height: screenSize/200),
+                                            SizedBox(height: screenSizeVertical/200),
                                             Text(
                                               'Followers: ' +
                                                   user.followers.length
@@ -276,10 +277,11 @@ class _HomePageState extends State<HomePage> {
                                           ],
                                         ),
                                         SizedBox(
-                                          width: screenSize/100,
+                                          width: screenSizeHorizontal/10,
                                         ),
+
                                         Column(children: [
-                                          SizedBox(height: screenSize/100),
+                                          SizedBox(height: screenSizeVertical/100),
                                           Text(
                                             'Following: ' +
                                                 user.following.length
@@ -287,25 +289,26 @@ class _HomePageState extends State<HomePage> {
                                             style: TextStyle(fontSize: 16.0),
                                           ),
                                           SizedBox(
-                                            height: screenSize/200,
+                                            height: screenSizeVertical/200,
                                           ),
                                           Text(
                                             'Friends: ' +
                                                 user.friends.length.toString(),
                                             style: TextStyle(fontSize: 16.0),
                                           ),
-                                        ])
+                                        ]),
+                                        SizedBox(
+                                          width: screenSizeHorizontal/100,
+                                        ),
                                       ])));
                             } else {
-                              return Container(
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
+                              return Center(
+                                  child: CircularProgressIndicator()
                               );
                             }
-                          }),
+                          })),
                     ],
-                  ),
+                  )),
                   SizedBox(
                     height: 20,
                   ),
@@ -331,7 +334,7 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                       FutureBuilder(
-                          future: getUser(),
+                          future: futureUser,
                           builder: (context, snapshot) {
                             var user = snapshot.data;
                             if (user != null) {
@@ -347,6 +350,7 @@ class _HomePageState extends State<HomePage> {
                               );
                             } else {
                               return Container(
+                                margin: EdgeInsets.symmetric(vertical: 10),
                                 child: Center(
                                   child: CircularProgressIndicator(),
                                 ),
@@ -365,10 +369,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 20.0),
                   FutureBuilder(
-                      future: getRequest(),
+                      future: futurePost,
                       builder: (context, snapshot) {
                         if (snapshot.data == null) {
                           return Container(
+                            margin: EdgeInsets.symmetric(vertical: 10),
                             child: Center(
                               child: CircularProgressIndicator(),
                             ),
@@ -381,13 +386,12 @@ class _HomePageState extends State<HomePage> {
                             itemBuilder: (context, index) {
                               final post = snapshot.data![index];
                               return FutureBuilder(
-                                  future: getUser(),
+                                  future: futureUser,
                                   builder: (context, Usersnapshot) {
                                     var user = Usersnapshot.data;
                                     if (user != null) {
                                       return GestureDetector(
                                           onTap: () {
-                                            // Handle post click
                                             List<String> following =
                                                 user.following;
                                             Navigator.push(
@@ -409,67 +413,77 @@ class _HomePageState extends State<HomePage> {
                                           },
                                           child: Card(
                                             color: Colors.white,
-                                            child: ListTile(
-                                              tileColor: Colors.white,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(80),
-                                              ),
-                                              contentPadding:
-                                                  const EdgeInsets.only(
-                                                      left: -30,
-                                                      right: 20,
-                                                      top: 20,
-                                                      bottom: 20),
-                                              leading: Container(
-                                                width: 5.0,
-                                                height: 50.0,
-                                                decoration: BoxDecoration(
+                                            child: SingleChildScrollView(
+                                              // scrollDirection: Axis.horizontal,
+                                              child: ListTile(
+                                                tileColor: Colors.white,
+                                                shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          30.0),
+                                                      BorderRadius.circular(40),
                                                 ),
+                                                contentPadding:
+                                                    const EdgeInsets.only(
+                                                        left: -30,
+                                                        right: 20,
+                                                        top: 20,
+                                                        bottom: 20),
+                                                leading: Container(
+                                                  width: 50.0,
+                                                  height: 50.0,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20.0),
+                                                  ),
+                                                ),
+                                                title: SingleChildScrollView(
+                                                  scrollDirection: Axis.horizontal,
+                                                  child: Text(post.title,
+                                                      style: Styles.headingStyle2),
+                                                ),
+                                                subtitle: SingleChildScrollView(
+                                                  scrollDirection: Axis.horizontal,
+                                                  child: Text(
+                                                      post.author +
+                                                          "\n\n" +
+                                                          post.description,
+                                                      style: Styles.headingStyle3),
+                                                ),
+                                                trailing: Container(
+                                                    height: 70,
+                                                    width: 70,
+                                                    child: Column(children: [
+                                                      Row(
+                                                        children: [
+                                                          Icon(Icons.thumb_up),
+                                                          Text(
+                                                            " " +
+                                                                post.noOfLikes
+                                                                    .toString(),
+                                                            style: Styles
+                                                                .headingStyle3,
+                                                          )
+                                                        ],
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Icon(Icons.thumb_down),
+                                                          Text(
+                                                            " " +
+                                                                post.noOfDislikes
+                                                                    .toString(),
+                                                            style: Styles
+                                                                .headingStyle3,
+                                                          )
+                                                        ],
+                                                      ),
+                                                    ])),
                                               ),
-                                              title: Text(post.title,
-                                                  style: Styles.headingStyle2),
-                                              subtitle: Text(
-                                                  post.author +
-                                                      "\n\n" +
-                                                      post.description,
-                                                  style: Styles.headingStyle3),
-                                              trailing: Container(
-                                                  height: 70,
-                                                  width: 70,
-                                                  child: Column(children: [
-                                                    Row(
-                                                      children: [
-                                                        Icon(Icons.thumb_up),
-                                                        Text(
-                                                          " " +
-                                                              post.noOfLikes
-                                                                  .toString(),
-                                                          style: Styles
-                                                              .headingStyle3,
-                                                        )
-                                                      ],
-                                                    ),
-                                                    Row(
-                                                      children: [
-                                                        Icon(Icons.thumb_down),
-                                                        Text(
-                                                          " " +
-                                                              post.noOfDislikes
-                                                                  .toString(),
-                                                          style: Styles
-                                                              .headingStyle3,
-                                                        )
-                                                      ],
-                                                    ),
-                                                  ])),
                                             ),
                                           ));
                                     } else {
                                       return Container(
+                                        margin: EdgeInsets.symmetric(vertical: 10),
                                         child: Center(
                                           child: CircularProgressIndicator(),
                                         ),
@@ -501,7 +515,6 @@ class _HomePageState extends State<HomePage> {
                       return ListTile(
                         title: Text('Friends'),
                         onTap: () {
-                          // Handle friends button press
                           List<String> following = user.following;
                           Navigator.push(
                               context,
@@ -520,6 +533,7 @@ class _HomePageState extends State<HomePage> {
                       );
                     } else {
                       return Container(
+                        margin: EdgeInsets.symmetric(vertical: 10),
                         child: Center(
                           child: CircularProgressIndicator(),
                         ),
@@ -529,7 +543,6 @@ class _HomePageState extends State<HomePage> {
               ListTile(
                 title: Text('Profile'),
                 onTap: () {
-                  // Handle profile button press
                   Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -549,14 +562,11 @@ class _HomePageState extends State<HomePage> {
                                 userId: widget.userId,
                                 username: widget.username,
                               )));
-                  // Handle search button press
                 },
               ),
               ListTile(
                 title: Text('Sign Out'),
                 onTap: () {
-                  // Handle search button press
-
                   Navigator.pushReplacement(context,
                       MaterialPageRoute(builder: (context) => LoginScreen()));
                 },

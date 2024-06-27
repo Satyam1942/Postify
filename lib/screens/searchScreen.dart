@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:project_hercules/screens/profile_screen.dart';
 import 'dart:convert';
-
 import 'Post.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -11,6 +10,7 @@ class SearchScreen extends StatefulWidget {
   final List<String> friendRequestSent;
   final List<String> friendRequestRecieved;
   final List<String> friends;
+
   SearchScreen(
       {required this.searchKey,
       required this.userId,
@@ -24,8 +24,6 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  TextEditingController _searchController = TextEditingController();
-
   Future<List<User>> searchUser() async {
     final String url =
         "https://postifybackend.onrender.com/personalInfo/search/" + widget.searchKey;
@@ -36,7 +34,8 @@ class _SearchScreenState extends State<SearchScreen> {
     for (var eachUser in responseData) {
       Contact contact = new Contact(
           PhNo: eachUser['contact']['PhNo'].toString(),
-          Email: eachUser['contact']['Email']);
+          Email: eachUser['contact']['Email']
+      );
       List<String> friends = [];
       List<String> followers = [];
       List<String> following = [];
@@ -77,7 +76,8 @@ class _SearchScreenState extends State<SearchScreen> {
           followers: followers,
           following: following,
           friendRequestSent: friendRequestSent,
-          friendRequestRecieved: friendRequestRecieved);
+          friendRequestRecieved: friendRequestRecieved
+      );
       users.add(user);
     }
     return users;
@@ -93,20 +93,12 @@ class _SearchScreenState extends State<SearchScreen> {
         children: [
           Padding(
             padding: EdgeInsets.all(16),
-            // child: TextField(
-            //   controller: _searchController,
-            //   onChanged: changeSeachKey(_searchController.text) ,
-            //   decoration: InputDecoration(
-            //     hintText: 'Search...',
-            //   ),
-            // ),
           ),
           Expanded(
               child: FutureBuilder(
                   future: searchUser(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-
                       List<User>? listUsers = snapshot.data;
                       return ListView.builder(
                         itemCount: listUsers!.length,
@@ -121,7 +113,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                             child:Stack(
                                                 children:[
                                                   if(listUsers[index].DP!="")
-                                                    Image.memory(base64Decode(listUsers[index].DP),
+                                                    Image.network(listUsers[index].DP,
                                                       width: double.infinity,
                                                       height: double.infinity,
                                                       fit: BoxFit.cover,),
@@ -135,15 +127,13 @@ class _SearchScreenState extends State<SearchScreen> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) => ProfileScreen(
-                                                  userId:
+                                                  userIdFriend:
                                                       listUsers[index].userId,
                                                   userIdHead: widget.userId,
                                                   following: widget.following,
                                                   friends: widget.friends,
-                                                  friendRequestSent:
-                                                      widget.friendRequestSent,
-                                                  friendRequestRecieved: widget
-                                                      .friendRequestRecieved,
+                                                  friendRequestSent: widget.friendRequestSent,
+                                                  friendRequestRecieved: widget.friendRequestRecieved,
                                                 )),
                                       );
                                     },
@@ -158,9 +148,5 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
       ),
     );
-  }
-
-  changeSeachKey(String searchKey) {
-    widget.searchKey = searchKey;
   }
 }

@@ -1,11 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:project_hercules/screens/profile_screen.dart';
-
 import 'Post.dart';
 import 'package:http/http.dart' as http;
-
 import 'chat_room.dart';
 
 class FriendsPage extends StatefulWidget {
@@ -15,6 +12,7 @@ class FriendsPage extends StatefulWidget {
   final List<String> friendRequestSent;
   final List<String> friends;
   final List<String> friendRequestRecieved;
+
   const FriendsPage(
       {required this.userId,
       required this.username,
@@ -28,92 +26,103 @@ class FriendsPage extends StatefulWidget {
 
 class _FriendsPageState extends State<FriendsPage> {
 
-  Future<User> getUser(String eachUserId) async {
+  Future<User?> getUser(String eachUserId) async {
     final String url =
         "https://postifybackend.onrender.com/personalInfo/getUserById/" + eachUserId;
 
     final response = await http.get(Uri.parse(url));
     var responseData = json.decode(response.body);
+    if (responseData.toString() != "null") {
+      Contact contact = new Contact(PhNo: "123", Email: responseData['contact']['Email']);
 
-    Contact contact = new Contact(
-        PhNo: responseData['contact']['PhNo'].toString(),
-        Email: responseData['contact']['Email']
-    );
+      List<String> friends = [];
+      List<String> followers = [];
+      List<String> following = [];
+      List<String> friendRequestSent = [];
+      List<String> friendRequestRecieved = [];
 
-    List<String> friends = [];
-    List<String> followers = [];
-    List<String> following = [];
-    List<String> friendRequestSent = [];
-    List<String> friendRequestRecieved = [];
-
-    if (responseData['friends'].length != 0) {
-      for (var eachFriend in responseData['friends']) {
-        friends.add(eachFriend.toString());
+      if (responseData['friends'].length != 0) {
+        for (var eachFriend in responseData['friends']) {
+          friends.add(eachFriend.toString());
+        }
       }
-    }
 
-    if (responseData['followers'].length != 0) {
-      for (var eachFollower in responseData['followers']) {
-        followers.add(eachFollower.toString());
+      if (responseData['followers'].length != 0) {
+        for (var eachFollower in responseData['followers']) {
+          followers.add(eachFollower.toString());
+        }
       }
-    }
 
-    if (responseData['following'].length != 0){
-      for (var eachFollowing in responseData['following']) {
-        following.add(eachFollowing.toString());
+      if (responseData['following'].length != 0) {
+        for (var eachFollowing in responseData['following']) {
+          following.add(eachFollowing.toString());
+        }
       }
-    }
 
-    if (responseData['friendRequestSent'].length != 0) {
-      for (var eachFriendRequestSent in responseData['friendRequestSent']) {
-        friendRequestSent.add(eachFriendRequestSent.toString());
+      if (responseData['friendRequestSent'].length != 0) {
+        for (var eachFriendRequestSent in responseData['friendRequestSent']) {
+          friendRequestSent.add(eachFriendRequestSent.toString());
+        }
       }
-    }
 
-    if (responseData['friendRequestRecieved'].length != 0) {
-      for (var eachFriendRequestRecieved in responseData['friendRequestRecieved']) {
-        friendRequestRecieved.add(eachFriendRequestRecieved.toString());
+      if (responseData['friendRequestRecieved'].length != 0) {
+        for (var eachFriendRequestRecieved
+            in responseData['friendRequestRecieved']) {
+          friendRequestRecieved.add(eachFriendRequestRecieved.toString());
+        }
       }
+
+      User user = new User(
+          userId: responseData['_id'],
+          username: responseData['username'],
+          name: responseData['name'],
+          age: responseData['age'],
+          gender: responseData['gender'],
+          contact: contact,
+          DP: responseData['DP'],
+          friends: friends,
+          followers: followers,
+          following: following,
+          friendRequestSent: friendRequestSent,
+          friendRequestRecieved: friendRequestRecieved
+      );
+      return user;
+    } else {
+      User user = new User(
+          userId: "null",
+          username: "null",
+          name: "null",
+          age: 1,
+          gender: "null",
+          contact: new Contact(PhNo: "null", Email: "null"),
+          DP: "null",
+          friends: [],
+          followers: [],
+          following: [],
+          friendRequestSent: [],
+          friendRequestRecieved: []);
+      return user;
     }
-
-    User user = new User(
-        userId: responseData['_id'],
-        username: responseData['username'],
-        name: responseData['name'],
-        age: responseData['age'],
-        gender: responseData['gender'],
-        contact: contact,
-        DP: responseData['DP'],
-        friends: friends,
-        followers: followers,
-        following: following,
-        friendRequestSent: friendRequestSent,
-        friendRequestRecieved: friendRequestRecieved
-    );
-
-
-
-    return user;
   }
 
-  Future<List<Future<User>>> getFriend() async {
-    final String url =
-        "https://postifybackend.onrender.com/personalInfo/getUserById/" + widget.userId;
+  Future<List<Future<User?>>> getFriend() async {
 
+    final String url = "https://postifybackend.onrender.com/personalInfo/getUserById/" + widget.userId;
     final response = await http.get(Uri.parse(url));
     var responseData = json.decode(response.body);
-    List<Future<User>> listUser = [];
+    List<Future<User?>> listUser = [];
     for (var eachUserId in responseData['friends']) {
-      listUser.add(getUser(eachUserId));
+      Future<User?> us = getUser(eachUserId);
+      listUser.add(us);
     }
     return listUser;
   }
 
-  Future<List<User>> fetchUsers(List<Future<User>> usersList) async {
-    List<User> users = [];
+  Future<List<User?>> fetchUsers(List<Future<User?>> usersList) async {
+    List<User?> users = [];
     for (var element in usersList) {
-      User user = await element;
-      users.add(user);
+      User? user = await element;
+      if (user!.username != "null") users.add(user);
     }
     return users;
   }
@@ -133,14 +142,13 @@ class _FriendsPageState extends State<FriendsPage> {
                 return FutureBuilder(
                     future: fetchUsers(usersList),
                     builder: (context, userSnapshot) {
-                      var users = userSnapshot.data;
+                      var users =  userSnapshot.data;
                       if (users != null) {
-
                         return ListView.builder(
                           padding: EdgeInsetsDirectional.only(top: 20.0),
                           itemCount: users.length,
                           itemBuilder: (context, index) {
-                            String friendName = users[index].username;
+                            String friendName = users[index]!.username;
                             return Container(
                                 child: Card(
                                     color: Colors.white,
@@ -159,9 +167,9 @@ class _FriendsPageState extends State<FriendsPage> {
                                         radius: 20.0,
                                         child: ClipOval(
                                             child: Stack(children: [
-                                          if (users[index].DP != "")
-                                            Image.memory(
-                                              base64Decode(users[index].DP),
+                                          if (users[index]!.DP != "")
+                                            Image.network(
+                                              users[index]!.DP,
                                               width: double.infinity,
                                               height: double.infinity,
                                               fit: BoxFit.cover,
@@ -171,8 +179,6 @@ class _FriendsPageState extends State<FriendsPage> {
                                       trailing: IconButton(
                                         icon: Icon(Icons.message_rounded),
                                         onPressed: () {
-                                          // Perform the action you want when the chat icon is clicked
-                                          // For example, navigate to a chat screen with this friend
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
@@ -181,22 +187,22 @@ class _FriendsPageState extends State<FriendsPage> {
                                                       userId: widget.userId,
                                                       userName: widget.username,
                                                       friendName: friendName,
-                                                      friendId:
-                                                          users[index].userId,
-                                                      friendDP: users[index].DP,
-                                                    )),
+                                                      friendId: users[index]!.userId,
+                                                      friendDP: users[index]!.DP,
+                                                    )
+                                            ),
                                           );
                                         },
                                       ),
+
                                       onTap: () {
-                                        // Perform the action you want when a friend's name is clicked
-                                        // For example, navigate to their profile screen
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) =>
                                                   ProfileScreen(
-                                                    userId: users[index].userId,
+                                                    userIdFriend:
+                                                        users[index]!.userId,
                                                     userIdHead: widget.userId,
                                                     following: widget.following,
                                                     friendRequestSent: widget
@@ -212,7 +218,7 @@ class _FriendsPageState extends State<FriendsPage> {
                         );
                       } else {
                         return Container(
-                            child: Center(child: CircularProgressIndicator()));
+                            child: Center(child: Text("No Friends")));
                       }
                     });
               } else {
