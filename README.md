@@ -1,6 +1,5 @@
 # Postify
-A flutter based web application which allows users to connect, create posts, and send friend requests, and chat with friends. To use the web app go to this link:
-https://postify-16l.pages.dev/ (Open it in Desktop Only. I will  make this responsive for mobile soon..)
+A flutter based web application which allows users to connect, create posts, and send friend requests, and chat with friends. To use the web app go to this link: https://postify-16l.pages.dev/ 
 To know more about the design and improvements that can be made refer to the design doc: https://docs.google.com/document/d/1VVitMtY_d1hZxBDaYAMw1jJNY4rVtklJ4gVQntFo3Ok/edit?usp=sharing
 
 – Implemented the frontend using **Flutter**, creating interactive user interfaces with widgets and handling user input.
@@ -8,7 +7,7 @@ To know more about the design and improvements that can be made refer to the des
 – Integrated backend functionality using **Node.js** and **MongoDB**, allowing users to store and retrieve data from the
 database.
 
-– Tech Stacks: Flutter, Dart, Node.js, MongoDB
+– Tech Stacks: Flutter, Dart, Node.js, MongoDB, Cloudinary
 
 ## Branches
 
@@ -34,6 +33,6 @@ The frontend code can be found on the `frontend` branch. Frontend is built compl
 ## High Level Architecture:
   The architecture of Postify is really simple.  Client sends HTTP Requests to the backend server. Backend is responsible for authenticating the user, performing CRUD updates on the database and sending HTTP   responses back to the client in JSON format. The Request and Response  sent/received are handled by flutter framework and the JSON is displayed in beautified fashion in UI.
   
-  ![Screenshot 2024-04-07 183644](https://github.com/Satyam1942/Postify/assets/126737709/6645f5cc-f9df-4614-95c4-85c463b76831)
+  ![HLD](https://github.com/Satyam1942/Postify/assets/126737709/c8b6877e-c71d-4946-b163-f43f641fd4a5)
 
 Feel free to explore each branch for specific code and documentation related to that part of the project.
